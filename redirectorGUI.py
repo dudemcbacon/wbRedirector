@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import json, re, socket, threading, wx
+import json, re, socket, threading, urllib, urllib2, wx
 from urlparse import urlparse
 
 UDP_IP = "127.0.0.1"
@@ -27,7 +27,7 @@ class SocketThread(threading.Thread):
 
 app = wx.App()
 
-frame = wx.Frame(None, -1, 'Woodburn SQUID Thinger', size=(1000,1000))
+frame = wx.Frame(None, -1, 'Woodburn SQUID Thinger', size=(500,850))
 frame.Show()
 
 def StartThread(event):
@@ -45,15 +45,22 @@ def StopThread(event):
 def CreatePolicy(event):
         data = {}
         data['domains'] = listbox.GetCheckedStrings()
-        if (txtAddress.GetValue() == "" or txtAppName.GetValue() == ""):
+        if (txtAddress.GetValue() == "" or txtAppName.GetValue() == "" or txtPolicyName.GetValue() == ""):
             print "Must enter a value for IP Address and App Name."
             lblAddress.SetForegroundColour((255,0,0))
             lblAppName.SetForegroundColour((255,0,0))
+            lblPolicyName.SetForegroundColour((255,0,0))
         else:
             data['AppName'] = txtAppName.GetValue()
-            print 'JSON string: %s' % json.dumps(data)
+            data['PolicyName'] = txtPolicyName.GetValue()
+            jdata = json.dumps(data)
+            host = 'http://%s:8080/insertNewRule' % txtAddress.GetValue()
+            print 'JSON string: %s' % jdata
+            print 'Sending to: %s' % host
+            #req = urllib2.Request(host, data)
+            urllib2.urlopen(host, jdata)
 
-listbox = wx.CheckListBox(frame, 26, pos=(10,100), size=(450, 750))
+listbox = wx.CheckListBox(frame, 26, pos=(10,130), size=(450, 750))
 btnStart = wx.Button(frame, label="Start", pos=(0,0))
 btnStart.Bind(wx.EVT_BUTTON, StartThread)
 
@@ -69,5 +76,7 @@ lblAddress = wx.StaticText(frame, pos=(10, 35), label="IP Address:")
 txtAddress = wx.TextCtrl(frame, pos=(150, 35), size=(250, 25))
 lblAppName = wx.StaticText(frame, pos=(10, 65), label="App Name:")
 txtAppName = wx.TextCtrl(frame, pos=(150, 65), size=(250, 25))
+lblPolicyName = wx.StaticText(frame, pos=(10, 95), label="Policy Name:")
+txtPolicyName = wx.TextCtrl(frame, pos=(150, 95), size=(250, 25))
 
 app.MainLoop()
