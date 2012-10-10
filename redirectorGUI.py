@@ -14,7 +14,7 @@ keepgoing = True
 
 class SocketThread(threading.Thread):
     def run(self):
-        while(keepgoing==True):
+        while not t.stop_event.isSet():
             data, addr = sock.recvfrom(1024)
             parsed_url = urlparse(data)
             if (parsed_url[0]==""):
@@ -32,7 +32,11 @@ class SocketThread(threading.Thread):
                 listbox.Check(clbItem, check=True)
             else:
                 print '%s already caught. Raw URL = %s' % (domain, data)   
+        print "SocketThread stopped."   
 
+t = SocketThread()
+t.stop_event = threading.Event()
+t.stop_event.clear()
 
 app = wx.App()
 
@@ -42,14 +46,13 @@ frame.Show()
 def StartThread(event):
 	btnStart.Disable()
         btnStop.Enable()
-        t = SocketThread()
 	t.start()
 
 def StopThread(event):
         btnStart.Enable()
         btnStop.Disable()
         btnCreatePolicy.Enable()
-        print urllist
+        t.stop_event.set()
 
 def CreatePolicy(event):
         data = {}
