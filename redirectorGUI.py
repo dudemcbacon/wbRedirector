@@ -17,17 +17,26 @@ class SocketThread(threading.Thread):
         while(keepgoing==True):
             data, addr = sock.recvfrom(1024)
             parsed_url = urlparse(data)
+            if (parsed_url[0]==""):
+                parsed_url = []
+                split_domain = data.split(":")
+                if (split_domain[1] == "80\n"):
+                    parsed_url.append("http")
+                if (split_domain[1] == "443\n"):
+                    parsed_url.append("https")
+                parsed_url.append(split_domain[0])
             domain = '{}://{}/'.format(parsed_url[0], parsed_url[1])
             if domain not in urllist:
                 urllist.append(domain)
-                listbox.Append(domain)
+                clbItem = listbox.Append(domain)
+                listbox.Check(clbItem, check=True)
             else:
-                print '%s already caught.' % domain   
+                print '%s already caught. Raw URL = %s' % (domain, data)   
 
 
 app = wx.App()
 
-frame = wx.Frame(None, -1, 'Woodburn SQUID Thinger', size=(500,850))
+frame = wx.Frame(None, -1, 'Woodburn SQUID Thinger', size=(465,920))
 frame.Show()
 
 def StartThread(event):
