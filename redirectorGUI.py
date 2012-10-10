@@ -1,37 +1,59 @@
 #!/usr/bin/python
-import json, re, socket, threading, urllib, urllib2, wx
+import logging, json, re, socket, threading, urllib, urllib2, wx
 from urlparse import urlparse
 
+logging.basicConfig(level=logging.INFO)
+logging.info("redirectoryGUI.py starting...")
+
 UDP_IP = "127.0.0.1"
-UDP_PORT = 5005
+UDP_PORT_RECV = 5005
+UDP_PORT_SEND = 5006
+
 urllist = []
 index = 0
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind((UDP_IP, UDP_PORT))
+sock_recv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock_recv.bind((UDP_IP, UDP_PORT_RECV))
+
+
 
 keepgoing = True
 
 class SocketThread(threading.Thread):
     def run(self):
+        logging.info("SocketThread loop started.")
         while not t.stop_event.isSet():
-            data, addr = sock.recvfrom(1024)
+            data, addr = sock_recv.recvfrom(1024)
+            logging.debug("Recieved %s from %s." % (data, addr))
             parsed_url = urlparse(data)
+            logging.debug(parsed_url)
             if (parsed_url[0]==""):
+                logging.debug("Received URL without preceding http/https.")
                 parsed_url = []
                 split_domain = data.split(":")
                 if (split_domain[1] == "80\n"):
+                    logging.debug("Port 80, setting to http.")
                     parsed_url.append("http")
                 if (split_domain[1] == "443\n"):
+                    logging.debug("Port 443, setting to https.")
                     parsed_url.append("https")
                 parsed_url.append(split_domain[0])
             domain = '{}://{}/'.format(parsed_url[0], parsed_url[1])
+            logging.info("Domain: %s" % domain)
             if domain not in urllist:
+                logging.debug("Domain is not in urllist. Adding.")
                 urllist.append(domain)
                 clbItem = listbox.Append(domain)
                 listbox.Check(clbItem, check=True)
             else:
-                print '%s already caught. Raw URL = %s' % (domain, data)   
+                logging.debug('%s already caught. Raw URL = %s' % (domain, data))   
+            if domain in listbox.GetCheckedStrings():
+                logging.info("Domain is checked. Sending OK.")
+                sock_send.sendto('OK', (UDP_IP, UDP_PORT_SEND))
+            else:
+                logging.info("Domain is not checked. Sending NO.")
+                sock_send.sendto('NO', (UDP_IP, UDP_PORT_SEND))
         print "SocketThread stopped."   
 
 t = SocketThread()

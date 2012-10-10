@@ -4,12 +4,12 @@ import logging, socket, sys
 __NAME__ = "wbRedirector.py"
 UDP_IP = "127.0.0.1"
 UDP_PORT_SEND = 5005
-UDP_PORT_LISTEN = 5006
+UDP_PORT_RECV = 5006
 
 sock_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock_listen = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock_recv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-sock_listen.bind((UDP_IP, UDP_PORT_LISTEN))
+sock_recv.bind((UDP_IP, UDP_PORT_RECV))
 
 logging.basicConfig(filename='example.log',level=logging.DEBUG)
 
@@ -23,13 +23,13 @@ while True:
 	logging.debug('Returning %s.' % (redirect))
         sock_send.sendto(redirect, (UDP_IP, UDP_PORT_SEND))
         logging.debug('Waiting for response...')
-        data, addr = sock_listen.recvfrom(1024)
+        data, addr = sock_recv.recvfrom(1024)
         logging.debug('Received %s from %s.' % (data, addr))
         if (data == "OK"):
             logging.debug('Returning %s' % redirect)
             sys.stdout.write(redirect)
 	    sys.stdout.flush()
         elif (data == "NO"):
-            logging.debug('Returning 404\n")
+            logging.debug('Returning 404\n')
             sys.stdout.write("404\n")
             sys.stdout.flush() 
