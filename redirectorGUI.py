@@ -149,7 +149,7 @@ def PrintSelectedItem(event):
 	tld = get_domain(selectedItem, tlds)
 	logging.info("TLD: %s" % tld)
 	if tld in badTLDs:
-		logging.info("%s is blacklisted.")
+		logging.info("%s is blacklisted." % seletedItem)
 
 def ExperienceAdjust(event):
 	sliderValue = sldExperience.GetValue()
@@ -157,14 +157,16 @@ def ExperienceAdjust(event):
 	if sliderValue == 0:
 		logging.info('Slider at 0.')
 		for domain in listbox.GetStrings():
-			if domain in badDomains:
+			tld = get_domain(domain, tlds)
+			if tld in badTLDs:
 				index = listbox.GetStrings().index(domain)
 				logging.info("%s in badDomains. Index: %d" % (domain,index))
 				listbox.Check(index, check=False)
 	elif sliderValue == 100:
 		logging.info('Slider at 100.')
 		for domain in listbox.GetStrings():
-			if domain in badDomains:
+			tld = get_domain(domain, tlds)
+			if tld in badTLDs:
 				index = listbox.GetStrings().index(domain)
 				logging.info("%s in badDomains. Index: %d" % (domain,index))
 				listbox.Check(index, check=True)
