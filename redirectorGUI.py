@@ -11,7 +11,19 @@ UDP_PORT_SEND = 5006
 
 urllist = []
 badDomains = [
-	'http://www.google-analytics.com'
+	'http://www.google-analytics.com/',
+	'https://ad.doubleclick.net/',
+	'http://icompass.insightexpressai.com/',
+	'http://ad.insightexpressai.com/',
+	'http://ads.cnn.com/',
+	'https://static.doubleclick.net/'
+	'http://js.adsonar.com/',
+	'http://pixel.quantserve.com/',
+	'http://ads.adsonar.com/',
+	'http://b.scorecardresearch.com/',
+	'http://view.atdmt.com/',
+	'http://spe.atdmt.com/',
+	'http://static.chartbeat.com/',
 ]
 
 
@@ -59,6 +71,32 @@ class SocketThread(threading.Thread):
                 sock_send.sendto('NO', (UDP_IP, UDP_PORT_SEND))
         print "SocketThread stopped."   
 
+with open("effective_tld_names.dat.txt") as tld_file:
+	 tlds = [line.strip() for line in tld_file if line[0] not in "/\n"]
+
+def get_domain(url, tlds):
+    url_elements = urlparse(url)[1].split('.')
+    # url_elements = ["abcde","co","uk"]
+
+    for i in range(-len(url_elements), 0):
+        last_i_elements = url_elements[i:]
+        #    i=-3: ["abcde","co","uk"]
+        #    i=-2: ["co","uk"]
+        #    i=-1: ["uk"] etc
+
+        candidate = ".".join(last_i_elements) # abcde.co.uk, co.uk, uk
+        wildcard_candidate = ".".join(["*"] + last_i_elements[1:]) # *.co.uk, *.uk, *
+        exception_candidate = "!" + candidate
+
+        # match tlds: 
+        if (exception_candidate in tlds):
+            return ".".join(url_elements[i:]) 
+        if (candidate in tlds or wildcard_candidate in tlds):
+            return ".".join(url_elements[i-1:])
+            # returns "abcde.co.uk"
+
+    raise ValueError("Domain not in global list of TLDs")
+
 t = SocketThread()
 t.stop_event = threading.Event()
 t.stop_event.clear()
@@ -69,15 +107,15 @@ frame = wx.Frame(None, -1, 'Granite Street Policy Creation Tool', size=(465,950)
 frame.Show()
 
 def StartThread(event):
-	btnStart.Disable()
-        btnStop.Enable()
-	t.start()
+    btnStart.Disable()
+    btnStop.Enable()
+    t.start()
 
 def StopThread(event):
-        btnStart.Enable()
-        btnStop.Disable()
-        btnCreatePolicy.Enable()
-        t.stop_event.set()
+    btnStart.Enable()
+    btnStop.Disable()
+    btnCreatePolicy.Enable()
+    t.stop_event.set()
 
 def CreatePolicy(event):
         data = {}
@@ -97,18 +135,32 @@ def CreatePolicy(event):
             #req = urllib2.Request(host, data)
             urllib2.urlopen(host, jdata)
 
+def PrintSelectedItem(event):
+	selectedItem = listbox.GetString(listbox.GetSelection())
+	logging.info("%s selected." % selectedItem)
+	logging.info("TLD: %s" % get_domain(selectedItem))
+
 def ExperienceAdjust(event):
 	sliderValue = sldExperience.GetValue()
 	logging.debug('Slider Value: %d' % sliderValue)
 	if sliderValue == 0:
 		logging.info('Slider at 0.')
+		for domain in listbox.GetStrings():
+			if domain in badDomains:
+				index = listbox.GetStrings().index(domain)
+				logging.info("%s in badDomains. Index: %d" % (domain,index))
+				listbox.Check(index, check=False)
 	elif sliderValue == 100:
 		logging.info('Slider at 100.')
-		for domain in listbox.GetCheckedStrings():
+		for domain in listbox.GetStrings():
 			if domain in badDomains:
-				logging.info("%s in badDomains." % domain)
+				index = listbox.GetStrings().index(domain)
+				logging.info("%s in badDomains. Index: %d" % (domain,index))
+				listbox.Check(index, check=True)
+		
 
 listbox = wx.CheckListBox(frame, 26, pos=(10,130), size=(450, 750))
+listbox.Bind(wx.EVT_LISTBOX, PrintSelectedItem)
 btnStart = wx.Button(frame, label="Start", pos=(0,0))
 btnStart.Bind(wx.EVT_BUTTON, StartThread)
 
