@@ -71,8 +71,8 @@ class SocketThread(threading.Thread):
                 sock_send.sendto('NO', (UDP_IP, UDP_PORT_SEND))
         print "SocketThread stopped."   
 
-with open("effective_tld_names.dat.txt") as tld_file:
-	 tlds = [line.strip() for line in tld_file if line[0] not in "/\n"]
+#with open("effective_tld_names.dat.txt") as tld_file:
+#	 tlds = [line.strip() for line in tld_file if line[0] not in "/\n"]
 
 def get_domain(url, tlds):
     url_elements = urlparse(url)[1].split('.')
