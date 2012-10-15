@@ -10,7 +10,10 @@ UDP_PORT_RECV = 5005
 UDP_PORT_SEND = 5006
 
 urllist = []
-index = 0
+badDomains = [
+	'http://www.google-analytics.com'
+]
+
 
 sock_recv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -62,7 +65,7 @@ t.stop_event.clear()
 
 app = wx.App()
 
-frame = wx.Frame(None, -1, 'Granite Street Policy Creation Tool', size=(465,920))
+frame = wx.Frame(None, -1, 'Granite Street Policy Creation Tool', size=(465,950))
 frame.Show()
 
 def StartThread(event):
@@ -94,6 +97,17 @@ def CreatePolicy(event):
             #req = urllib2.Request(host, data)
             urllib2.urlopen(host, jdata)
 
+def ExperienceAdjust(event):
+	sliderValue = sldExperience.GetValue()
+	logging.debug('Slider Value: %d' % sliderValue)
+	if sliderValue == 0:
+		logging.info('Slider at 0.')
+	elif sliderValue == 100:
+		logging.info('Slider at 100.')
+		for domain in listbox.GetCheckedStrings():
+			if domain in badDomains:
+				logging.info("%s in badDomains." % domain)
+
 listbox = wx.CheckListBox(frame, 26, pos=(10,130), size=(450, 750))
 btnStart = wx.Button(frame, label="Start", pos=(0,0))
 btnStart.Bind(wx.EVT_BUTTON, StartThread)
@@ -106,11 +120,15 @@ btnCreatePolicy = wx.Button(frame, label="Create Policy", pos=(200,0))
 btnCreatePolicy.Bind(wx.EVT_BUTTON, CreatePolicy)
 btnCreatePolicy.Disable()
 
+sldExperience = wx.Slider(frame, -1, 100, 0, 100, (150, 890), (250, -1), wx.SL_AUTOTICKS | wx.SL_HORIZONTAL)
+sldExperience.Bind(wx.EVT_SLIDER, ExperienceAdjust)
+
 lblAddress = wx.StaticText(frame, pos=(10, 35), label="IP Address:")
 txtAddress = wx.TextCtrl(frame, pos=(150, 35), size=(250, 25))
 lblAppName = wx.StaticText(frame, pos=(10, 65), label="App Name:")
 txtAppName = wx.TextCtrl(frame, pos=(150, 65), size=(250, 25))
 lblPolicyName = wx.StaticText(frame, pos=(10, 95), label="Policy Name:")
 txtPolicyName = wx.TextCtrl(frame, pos=(150, 95), size=(250, 25))
+lblExperience = wx.StaticText(frame, pos=(10,890), label="Experience:")
 
 app.MainLoop()
