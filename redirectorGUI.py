@@ -10,6 +10,14 @@ UDP_PORT_RECV = 5005
 UDP_PORT_SEND = 5006
 
 urllist = []
+badTLDs = [
+	'doubleclick.net',
+	'google-analytics.com',
+	'quantserve.com',
+	'scorecardresearch.com',
+	'atdmt.com',
+	'chartbeat.net'
+]
 badDomains = [
 	'http://www.google-analytics.com/',
 	'https://ad.doubleclick.net/',
@@ -71,8 +79,8 @@ class SocketThread(threading.Thread):
                 sock_send.sendto('NO', (UDP_IP, UDP_PORT_SEND))
         print "SocketThread stopped."   
 
-#with open("effective_tld_names.dat.txt") as tld_file:
-#	 tlds = [line.strip() for line in tld_file if line[0] not in "/\n"]
+with open("effective_tld_names.dat.txt") as tld_file:
+	 tlds = [line.strip() for line in tld_file if line[0] not in "/\n"]
 
 def get_domain(url, tlds):
     url_elements = urlparse(url)[1].split('.')
@@ -138,7 +146,10 @@ def CreatePolicy(event):
 def PrintSelectedItem(event):
 	selectedItem = listbox.GetString(listbox.GetSelection())
 	logging.info("%s selected." % selectedItem)
-	logging.info("TLD: %s" % get_domain(selectedItem))
+	tld = get_domain(selectedItem, tlds)
+	logging.info("TLD: %s" % tld)
+	if tld in badTLDs:
+		logging.info("%s is blacklisted.")
 
 def ExperienceAdjust(event):
 	sliderValue = sldExperience.GetValue()
