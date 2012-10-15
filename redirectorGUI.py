@@ -62,7 +62,7 @@ t.stop_event.clear()
 
 app = wx.App()
 
-frame = wx.Frame(None, -1, 'Woodburn SQUID Thinger', size=(465,920))
+frame = wx.Frame(None, -1, 'Granite Street Policy Creation Tool', size=(465,920))
 frame.Show()
 
 def StartThread(event):
