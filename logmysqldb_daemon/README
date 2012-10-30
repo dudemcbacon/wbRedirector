@@ -1,0 +1,39 @@
+INSTALL
+==================
+1. Edit the makefile and provide the appropriate mysql client library path
+2. make && make install
+
+Squid.conf
+===================
+
+## logfile format
+logformat mysql_columns %ts.%03tu %tr %>a %Ss %Hs %<st %rm %ru %Sh %un %<A %mt
+
+## daemon:<path/to/db.cf>. db.cf has db access info
+access_log daemon:/usr/local/ldaemon/db.cf mysql_columns
+
+## mysql logdaemon path.
+logfile_daemon /usr/local/ldaemon/logmysqldb_daemon
+##--------end squid.conf ------------------
+
+Sample db.cf
+============
+
+ hostname        localhost
+ user            squid
+ password        squid
+ database        squidlog_db
+ mysqld_socket   /var/lib/mysqld.sock
+ table           access_log
+
+#---------end db.cf-------------------------
+
+Todo:
+   - read the logformat and adjust logging to keep  the DB columns constant.
+   - create the db/table dynamically if it doesnt exist.
+   - Logrotate feature.
+
+Table Creation
+==============
+
+Create a table using tbl.sql file.
