@@ -10,6 +10,10 @@ UDP_PORT_RECV = 5005
 UDP_PORT_SEND = 5006
 
 urllist = []
+whiteList = [
+	'cnn.com',
+	'turner.com'
+]
 badTLDs = [
 	'doubleclick.net',
 	'google-analytics.com',
@@ -18,22 +22,6 @@ badTLDs = [
 	'atdmt.com',
 	'chartbeat.net'
 ]
-badDomains = [
-	'http://www.google-analytics.com/',
-	'https://ad.doubleclick.net/',
-	'http://icompass.insightexpressai.com/',
-	'http://ad.insightexpressai.com/',
-	'http://ads.cnn.com/',
-	'https://static.doubleclick.net/'
-	'http://js.adsonar.com/',
-	'http://pixel.quantserve.com/',
-	'http://ads.adsonar.com/',
-	'http://b.scorecardresearch.com/',
-	'http://view.atdmt.com/',
-	'http://spe.atdmt.com/',
-	'http://static.chartbeat.com/',
-]
-
 
 sock_recv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -154,8 +142,17 @@ def PrintSelectedItem(event):
 def ExperienceAdjust(event):
 	sliderValue = sldExperience.GetValue()
 	logging.debug('Slider Value: %d' % sliderValue)
-	if sliderValue == 0:
-		logging.info('Slider at 0.')
+	if sliderValue == 50:
+		logging.info('Slider at 50.')
+		for domain in listbox.GetStrings():
+			tld = get_domain(domain, tlds)
+			if tld not in whiteList:
+				index = listbox.GetStrings().index(domain)
+				logging.info("%s not in whiteList. Index: %d" % (domain,index))
+				listbox.Check(index, check=False)
+	if sliderValue == 80:
+		logging.info('Slider at 80.')
+		listbox.SetCheckedStrings(listbox.GetStrings())
 		for domain in listbox.GetStrings():
 			tld = get_domain(domain, tlds)
 			if tld in badTLDs:
