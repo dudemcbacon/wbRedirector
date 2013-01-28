@@ -1,7 +1,7 @@
 PREFIX=/usr/local/test
 CC = gcc
-CFLAGS = -g -Wall -I/usr/local/include 
-LDFLAGS = -L/usr/lib/mysql -lmysqlclient
+CFLAGS = -g -Wall -I/usr/local/include -I/opt/local/include/mysql5/ 
+LDFLAGS = -L/opt/local/lib/mysql5/mysql/ -lmysqlclient
 MYSQL_OBJS = logmysqldb_daemon.o confparser.o
 INSTALL = /usr/bin/install
 CONF = db.cf

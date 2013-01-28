@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import logging, json, re, socket, threading, urllib, urllib2, wx
+import logging, json, MySQLdb, re, socket, time, threading, urllib, urllib2, wx
 from urlparse import urlparse
 
 logging.basicConfig(level=logging.INFO)
@@ -23,11 +23,14 @@ badTLDs = [
 	'chartbeat.net'
 ]
 
+conn = MySQLdb.connect(host="localhost", user="root", passwd="bacon", db="squidlog_db")
+
 sock_recv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock_recv.bind((UDP_IP, UDP_PORT_RECV))
 
-
+startTime = 0
+stopTime = 0
 
 keepgoing = True
 
@@ -99,18 +102,26 @@ t.stop_event.clear()
 
 app = wx.App()
 
-frame = wx.Frame(None, -1, 'Granite Street Policy Creation Tool', size=(465,950))
+frame = wx.Frame(None, -1, 'Granite Street Policy Creation Tool', size=(465,1000))
 frame.Show()
 
 def StartThread(event):
     btnStart.Disable()
     btnStop.Enable()
+    startTime = time.mktime(time.gmtime())
+    logging.info('Start time is %d' % startTime)
     t.start()
 
 def StopThread(event):
     btnStart.Enable()
     btnStop.Disable()
     btnCreatePolicy.Enable()
+    stopTime = time.mktime(time.gmtime())
+    logging.info('Stop time is %d' % stopTime)
+    cursor = conn.cursor()
+    cursor.execute("SELECT SUM(reply_size) FROM access_log WHERE timestamp >= %d AND timestamp <= %d" % (int(startTime), int(stopTime)))
+    result_set = cursor.fetchall()
+    lblUsedBand.SetLabel(str(result_set[0][0]))
     t.stop_event.set()
 
 def CreatePolicy(event):
@@ -192,5 +203,7 @@ txtAppName = wx.TextCtrl(frame, pos=(150, 65), size=(250, 25))
 lblPolicyName = wx.StaticText(frame, pos=(10, 95), label="Policy Name:")
 txtPolicyName = wx.TextCtrl(frame, pos=(150, 95), size=(250, 25))
 lblExperience = wx.StaticText(frame, pos=(10,890), label="Experience:")
+lblBandwidth = wx.StaticText(frame, pos=(10, 920), label="Bandwidth Used:")
+lblUsedBand = wx.StaticText(frame, pos=(150,920), label="(Press stop button to calculate.)")
 
 app.MainLoop()

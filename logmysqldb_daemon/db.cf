@@ -1,7 +1,6 @@
- #hostname        172.16.1.37
  hostname        localhost
  user            root
- password        squid
+ password        bacon
  database        squidlog_db
- mysqld_socket   /tmp/mysqld.sock
+ mysqld_socket   /opt/local/var/run/mysql5/mysqld.sock
  table           access_log
